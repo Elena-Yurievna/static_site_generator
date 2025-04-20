@@ -25,6 +25,7 @@ It converts Markdown (`.md`) files into styled HTML pages using a shared HTML te
 
 ## 📁 Project Structure
 
+```plaintext
 static_site_generator/
 ├── content/            # Your markdown files (index.md, blog/*.md, etc.)
 ├── docs/               # Output directory (published to GitHub Pages)
@@ -39,6 +40,7 @@ static_site_generator/
 ├── build.sh            # Build site for GitHub Pages
 ├── .gitignore
 └── README.md
+```
 
 ---
 
