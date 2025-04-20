@@ -1,50 +1,43 @@
 import os
 from markdown_blocks import markdown_to_html_node
 
-def generate_page(from_path, template_path, dest_path):
-    print(f" * {from_path} {template_path} -> {dest_path}")
-    from_file = open(from_path, "r")
-    markdown_content = from_file.read()
-    from_file.close()
+def generate_page(from_path, template_path, dest_path, base_path="/"):
+    print(f" * {from_path} -> {dest_path}")
+    
+    with open(from_path, "r") as f:
+        markdown_content = f.read()
+    with open(template_path, "r") as f:
+        template = f.read()
 
-    template_file = open(template_path, "r")
-    template = template_file.read()
-    template_file.close()
-
-    node = markdown_to_html_node(markdown_content)
-    html = node.to_html()
-
+    html = markdown_to_html_node(markdown_content).to_html()
     title = extract_title(markdown_content)
+
     template = template.replace("{{ Title }}", title)
     template = template.replace("{{ Content }}", html)
 
-    dest_dir_path = os.path.dirname(dest_path)
-    if dest_dir_path != "":
-        os.makedirs(dest_dir_path, exist_ok=True)
-    to_file = open(dest_path, "w")
-    to_file.write(template)
+    template = template.replace('href="/', f'href="{base_path}')
+    template = template.replace('src="/', f'src="{base_path}')
 
-def generate_page_recursive(content_dir, template_path, public_dir):
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    with open(dest_path, "w") as f:
+        f.write(template)
+
+
+def generate_page_recursive(content_dir, template_path, output_dir, base_path="/"):
     for root, dirs, files in os.walk(content_dir):
         for file in files:
             if file.endswith(".md"):
                 full_md_path = os.path.join(root, file)
-
-                # Get relative path
                 relative_path = os.path.relpath(full_md_path, content_dir)
                 relative_dir = os.path.dirname(relative_path)
                 file_name = os.path.splitext(os.path.basename(file))[0]
 
-                # Create destination path
-                # If the file is in the root directory, use "index.html"
-                # Otherwise, use the directory structure
                 if file_name == "index":
-                    dest_path = os.path.join(public_dir, relative_dir, "index.html")
+                    dest_path = os.path.join(output_dir, relative_dir, "index.html")
                 else:
-                    dest_path = os.path.join(public_dir, relative_dir, f"{file_name}.html")
+                    dest_path = os.path.join(output_dir, relative_dir, f"{file_name}.html")
 
-                print(f"{full_md_path} -> {dest_path}")
-                generate_page(full_md_path, template_path, dest_path)
+                generate_page(full_md_path, template_path, dest_path, base_path)
 
 def extract_title(md):
     lines = md.split("\n")
